@@ -31,8 +31,7 @@ class Net(nn.Module):
         x = F.relu(x)
         x = self.dropout2(x)
         x = self.fc2(x)
-        output = F.log_softmax(x, dim=1)
-        return output
+        return F.log_softmax(x, dim=1)
 
 train_losses = []
 train_counter = []
@@ -120,8 +119,8 @@ def main():
         cuda_kwargs = {'num_workers': 1,
                        'pin_memory': True,
                        'shuffle': True}
-        train_kwargs.update(cuda_kwargs)
-        test_kwargs.update(cuda_kwargs)
+        train_kwargs |= cuda_kwargs
+        test_kwargs |= cuda_kwargs
 
     transform=transforms.Compose([
         transforms.ToTensor(),
