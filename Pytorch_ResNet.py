@@ -107,10 +107,7 @@ class ResNet(nn.Module):
 
     def __init__(self, block, layers, num_classes, grayscale):
         self.inplanes = 64
-        if grayscale:
-            in_dim = 1
-        else:
-            in_dim = 3
+        in_dim = 1 if grayscale else 3
         super(ResNet, self).__init__()
         self.conv1 = nn.Conv2d(in_dim, 64, kernel_size=7, stride=2, padding=3,
                                bias=False)
@@ -141,12 +138,9 @@ class ResNet(nn.Module):
                 nn.BatchNorm2d(planes * block.expansion),
             )
 
-        layers = []
-        layers.append(block(self.inplanes, planes, stride, downsample))
+        layers = [block(self.inplanes, planes, stride, downsample)]
         self.inplanes = planes * block.expansion
-        for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes))
-
+        layers.extend(block(self.inplanes, planes) for _ in range(1, blocks))
         return nn.Sequential(*layers)
     
     def forward(self, x):
@@ -170,11 +164,12 @@ class ResNet(nn.Module):
 
 def resnet18(num_classes):
     """Constructs a ResNet-18 model."""
-    model = ResNet(block=BasicBlock, 
-                   layers=[2, 2, 2, 2],
-                   num_classes=NUM_CLASSES,
-                   grayscale=GRAYSCALE)
-    return model
+    return ResNet(
+        block=BasicBlock,
+        layers=[2, 2, 2, 2],
+        num_classes=NUM_CLASSES,
+        grayscale=GRAYSCALE,
+    )
 
 torch.manual_seed(RANDOM_SEED)
 
@@ -186,8 +181,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
 def compute_accuracy(model, data_loader, device):
     correct_pred, num_examples = 0, 0
-    for i, (features, targets) in enumerate(data_loader):
-            
+    for features, targets in data_loader:
         features = features.to(device)
         targets = targets.to(device)
 
