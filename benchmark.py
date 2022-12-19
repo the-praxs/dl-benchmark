@@ -10,10 +10,12 @@ import time
 from models import resnet, lenet
 
 best_accuracy = 0
+avg_loss = 0
 
 # Training
 def train(net, trainloader, optimizer, criterion, device):
     global best_accuracy
+    global avg_loss
     net.train()
     train_loss = 0
     correct = 0
@@ -48,12 +50,13 @@ def train(net, trainloader, optimizer, criterion, device):
     total_time +=(et - st)
     accuracy = 100.*correct/total
     loss = train_loss/len(trainloader)
+    avg_loss += loss
 
     if accuracy > best_accuracy:
         best_accuracy = accuracy
     
-    print('[INFO] Training Loss: %.3f' % loss)
-    print('[INFO] Training Accuracy: %.3f' % accuracy)
+    print('[INFO] Epoch Training Loss: %.3f' % loss)
+    print('[INFO] Epoch Training Accuracy: %.3f' % accuracy)
     print('[INFO] Epoch Data Loading Time: %.3f s' % data_time)
     print('[INFO] Epoch Training Time: %.3f s' % train_time)
     
@@ -68,7 +71,7 @@ def test(net, testloader, criterion, device):
     total = 0
 
     with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(testloader):
+        for inputs, targets in testloader:
             inputs, targets = inputs.to(device), targets.to(device)
             outputs = net(inputs)
             loss = criterion(outputs, targets)
@@ -106,15 +109,17 @@ def main(args):
     if args.data == 'mnist':
         trainset = torchvision.datasets.MNIST(root='.data', train=True, download=True, transform=transforms.ToTensor())
         testset = torchvision.datasets.MNIST(root='.data', train=False, download=True, transform=transforms.ToTensor())
+        dataset = 'MNIST'
     elif args.data == 'fashion':
         trainset = torchvision.datasets.FashionMNIST(root='.data', train=True, download=True, transform=transforms.ToTensor())
         testset = torchvision.datasets.FashionMNIST(root='.data', train=False, download=True, transform=transforms.ToTensor())
+        datastet = 'FashionMNIST'
 
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
     testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=args.num_workers)
     
-    print(f'[INFO] Using Dataset: {args.data}')
-    print(f'[INFO] Batch Size = {args.batch_size}')
+    print(f'[INFO] Using Dataset: {dataset}')
+    print(f'[INFO] Batch Size: {args.batch_size}')
 
     # Model
     print('\n==> Building model...')
@@ -142,18 +147,19 @@ def main(args):
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 
     print('\n==> Evaluating model...')
-    for epoch in range(epochs):
-        print(f'\n[INFO] Epoch: {epoch+1}')
+    for epoch in range(1, epochs+1):
+        print(f'\n[INFO] Epoch: {epoch}')
         total, data, train_t = train(net, trainloader, optimizer, criterion, device)
         total_time += total
         data_time += data
         train_time += train_t
         test(net, testloader, criterion, device)
         scheduler.step()
+        print('[UPDATE] Average Training Loss: %.3f' % (avg_loss/epoch))
         
     total_train_time = data_time + train_time
     
-    print('\n[INFO] Best Traning Accuracy: %.3f' % best_accuracy)
+    print('\n[INFO] Best Training Accuracy: %.3f' % best_accuracy)
     print('[INFO] Total Data Loading Time: %.3f s' % data_time)
     print('[INFO] Total Epoch Training Time: %.3f s' % train_time)
     print('[INFO] Total Training Time: %.3f s' % total_train_time)
