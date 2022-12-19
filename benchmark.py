@@ -13,7 +13,7 @@ from torchvision import datasets
 import argparse
 import time
 from torchinfo import summary
-from resnet import resnet
+from models import resnet
 
 best_acc = 0  # best test accuracy
 
@@ -119,7 +119,7 @@ def main(args):
                             shuffle=False)
       # Model
     print('\n==> Building model...')
-    net = resnet.resnet18(10)
+    net = resnet.ResNet18(10)
     net = net.to(device)
 
     if device == 'cuda':
