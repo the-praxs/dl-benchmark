@@ -6,10 +6,14 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
+
+from torchvision import datasets
+
 import argparse
 import time
 from torchinfo import summary
-import resnet
+from resnet import resnet
 
 best_acc = 0  # best test accuracy
 
@@ -33,7 +37,7 @@ def train(net, trainloader, optimizer, criterion, device):
         data_time += end - start
         start_t = time.monotonic()
         optimizer.zero_grad()
-        outputs = net(inputs)
+        outputs,x = net(inputs)
         loss = criterion(outputs, targets)
         loss.backward()
         optimizer.step()
@@ -73,7 +77,7 @@ def test(net, testloader, criterion, device):
     with torch.no_grad():
         for inputs, targets in testloader:
             inputs, targets = inputs.to(device), targets.to(device)
-            outputs = net(inputs)
+            outputs,x = net(inputs)
             loss = criterion(outputs, targets)
 
             test_loss += loss.item()
@@ -96,31 +100,26 @@ def main(args):
 
     # Data
     print('\n==> Preparing data...')
-    transform_train = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])
+    train_dataset = datasets.MNIST(root='data', 
+                                train=True, 
+                                transform=transforms.ToTensor(),
+                                download=True)
 
-    transform_test = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-    ])
+    test_dataset = datasets.MNIST(root='data', 
+                                train=False, 
+                                transform=transforms.ToTensor())
 
-    print('Training Data: ')
-    trainset = torchvision.datasets.CIFAR10(root=args.data_path, train=True, download=True, transform=transform_train)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=args.num_workers)
 
-    print('Testing Data: ')
-    testset = torchvision.datasets.CIFAR10(root=args.data_path, train=False, download=True, transform=transform_test)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=args.num_workers)
+    train_loader = DataLoader(dataset=train_dataset, 
+                            batch_size=128, 
+                            shuffle=True)
 
-    classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
-
-    # Model
+    test_loader = DataLoader(dataset=test_dataset, 
+                            batch_size=128, 
+                            shuffle=False)
+      # Model
     print('\n==> Building model...')
-    net = resnet.ResNet18()
+    net = resnet.resnet18(10)
     net = net.to(device)
 
     if device == 'cuda':
@@ -146,13 +145,13 @@ def main(args):
 
     for epoch in range(5):
         print(f'\nEpoch: {epoch+1}')
-        total_time += train(net, trainloader, optimizer, criterion, device)
-        test(net, testloader, criterion, device)
+        total_time += train(net, train_loader, optimizer, criterion, device)
+        test(net, test_loader, criterion, device)
         scheduler.step()
 
     print('\nTotal Training Time: %.3f s' % total_time)
     print('\nArchitecture Summary:')
-    summary(net, (128, 3, 32, 32))
+    #summary(net, (128, 3, 32, 32))
 
 
 if __name__ == "__main__":
