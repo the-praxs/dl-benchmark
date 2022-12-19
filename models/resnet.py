@@ -101,10 +101,9 @@ class ResNet(nn.Module):
         
         x = x.view(x.size(0), -1)
         logits = self.fc(x)
-        probas = F.softmax(logits, dim=1)
-        return logits, probas
+        return logits
 
-def ResNet18(num_classes):
+def ResNet18():
     """Constructs a ResNet-18 model."""
     model = ResNet(block=BasicBlock, 
                    layers=[2, 2, 2, 2],
