@@ -131,8 +131,6 @@ It can be concluded that Julia is suitable for those interested in exploring Art
 ## References
 * [Deep Learning with Julia using Flux.jl](https://deeplearningwithjulia.com/)
 * [THE MNIST DATABASE of handwritten digits](http://yann.lecun.com/exdb/mnist/)
-* [Metalhead](https://github.com/FluxML/Metalhead.jl)
-* [Hyperopt](https://github.com/baggepinnen/Hyperopt.jl)
 * [Flux.jl on MNIST — Variations of a theme](https://towardsdatascience.com/flux-jl-on-mnist-variations-of-a-theme-c3cd7a949f8c)
 * [Flux.jl on MNIST — A performance analysis](https://towardsdatascience.com/flux-jl-on-mnist-a-performance-analysis-c660c2ffd330)
 * [A Swift Introduction To Flux For Julia (With CUDA)](https://towardsdatascience.com/a-swift-introduction-to-flux-for-julia-with-cuda-9d87c535312c)
