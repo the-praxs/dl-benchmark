@@ -163,7 +163,7 @@ def main(args):
     print('[INFO] Total Data Loading Time: %.3f s' % data_time)
     print('[INFO] Total Epoch Training Time: %.3f s' % train_time)
     print('[INFO] Total Training Time: %.3f s' % total_train_time)
-    print('[INFO] Total Training Loop Time: %.3f s' % total_time)
+    print('[INFO] Total Training Epoch Time: %.3f s' % total_time)
     print()
     
 
